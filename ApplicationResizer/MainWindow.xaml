@@ -1,0 +1,15 @@
+﻿<Window x:Class="ApplicationResizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Resize images from clipboard" Height="321" Width="528" FontSize="18" Icon="/ApplicationResizer;component/Images/Annotate_Default.ico">
+    <Grid Height="266" Width="492">
+        <Label Content="Label" Height="34" HorizontalAlignment="Left" Margin="9,189,0,0" Name="StoragePathLabel" VerticalAlignment="Top" />
+        <Button Content="Save as..." Height="138" HorizontalAlignment="Left" Margin="359,0,0,121" Name="PickNameButton" VerticalAlignment="Bottom" Width="122" Click="PickNameButton_Click" />
+        <RadioButton Content="100" Height="30" HorizontalAlignment="Left" Margin="12,156,0,0" Name="width100RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
+        <RadioButton Content="110" Height="30" HorizontalAlignment="Left" Margin="60,156,0,0" Name="width110RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
+        <RadioButton Content="300" Height="30" HorizontalAlignment="Left" Margin="109,156,0,0" Name="width300RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" IsChecked="True"/>
+        <RadioButton Content="400" Height="30" HorizontalAlignment="Left" Margin="159,156,0,0" Name="width400RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
+        <Image Height="150" HorizontalAlignment="Left" Name="imgTest" Stretch="Fill" VerticalAlignment="Top" Width="200" Margin="0,1,0,0" />
+        <Button Content="Import clipboard" Height="138" HorizontalAlignment="Left" Margin="206,6,0,0" Name="button3" VerticalAlignment="Top" Width="147" Click="button3_Click" FontStretch="Condensed" />
+    </Grid>
+</Window>
