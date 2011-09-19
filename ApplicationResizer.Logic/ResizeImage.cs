@@ -12,6 +12,7 @@ namespace ApplicationResizer.Logic
     {
         protected Image OriginalImage { get; set; }
         public Image ResizedImage { get; private set; }
+        public long TargetQuality { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the ResizeImage class.
@@ -23,9 +24,10 @@ namespace ApplicationResizer.Logic
         /// <summary>
         /// Initializes a new instance of the ResizeImage class.
         /// </summary>
-        public ResizeImage(Image originalImage)
+        public ResizeImage(Image originalImage, long targetQuality)
         {
             OriginalImage = originalImage;
+            TargetQuality = targetQuality;
         }
 
 
@@ -95,7 +97,7 @@ namespace ApplicationResizer.Logic
         public void ProcessByWidth(int newWidth, string fileName)
         {
             ResizedImage = ResizeByWidth(OriginalImage, newWidth);
-            SaveJpeg(fileName, new Bitmap(ResizedImage), 50L);
+            SaveJpeg(fileName, new Bitmap(ResizedImage), TargetQuality);
         }
 
         private Image ResizeByWidth(Image imgToResize, int newWidth)
@@ -104,21 +106,6 @@ namespace ApplicationResizer.Logic
             int sourceHeight = imgToResize.Height;
 
             int newHeight = imgToResize.Height * newWidth / imgToResize.Width;
-
-            //float nPercent = 0;
-            //float nPercentW = 0;
-            //float nPercentH = 0;
-
-            //nPercentW = ((float)size.Width / (float)sourceWidth);
-            //nPercentH = ((float)size.Height / (float)sourceHeight);
-
-            //if (nPercentH < nPercentW)
-            //    nPercent = nPercentH;
-            //else
-            //    nPercent = nPercentW;
-
-            //int destWidth = (int)(sourceWidth * nPercent);
-            //int destHeight = (int)(sourceHeight * nPercent);
 
             Bitmap b = new Bitmap(newWidth, newHeight);
             Graphics g = Graphics.FromImage((Image)b);

@@ -17,6 +17,7 @@ using System.Windows.Interop;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Drawing.Imaging;
 
 namespace ApplicationResizer
 {
@@ -33,13 +34,14 @@ namespace ApplicationResizer
         {
             InitializeComponent();
             InitializeLabel();
+            targetQualitySlider.Value = Convert.ToDouble(Config.AppSettings.Settings["TargetQuality"].Value);
         }
 
         private void InitializeLabel()
         {
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             StoragePath = Config.AppSettings.Settings["DefaultStoragePath"].Value;
-            StoragePathLabel.Content = "Configured to save in: " + StoragePath;
+            StoragePathTextbox.Text = "Configured to save in: " + StoragePath;
 
             
         }
@@ -78,48 +80,43 @@ namespace ApplicationResizer
             {
                 var fi = new System.IO.FileInfo(dlg.FileName);
                 StoragePath = fi.DirectoryName;
+                string name = System.IO.Path.GetFileNameWithoutExtension(fi.FullName);
+                string transformed = name.Replace(" ", "-") + "-web.jpg";
                 Config.AppSettings.Settings["DefaultStoragePath"].Value = StoragePath;
-                Config.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("appSettings");                
-                ResizeImage ri = new ResizeImage(_bitmapImage);
-                ri.ProcessByWidth(GetWidth(), dlg.FileName);
+                long quality = Convert.ToInt64(targetQualitySlider.Value);
+                Config.AppSettings.Settings["TargetQuality"].Value = quality.ToString();
+                Config.Save(ConfigurationSaveMode.Modified);
+                ResizeImage ri = new ResizeImage(_bitmapImage, quality);
+                ri.ProcessByWidth(GetWidth(), transformed);
             }
         }
 
         private ImageSource ImageFromClipboardDib()
         {
-            MemoryStream ms = Clipboard.GetData("DeviceIndependentBitmap") as MemoryStream;
-            if (ms != null)
+            // Ensure clipboard has data..
+            IDataObject objClipboard = Clipboard.GetDataObject();
+            if (objClipboard == null)
             {
-                byte[] dibBuffer = new byte[ms.Length];
-                ms.Read(dibBuffer, 0, dibBuffer.Length);
-
-                BITMAPINFOHEADER infoHeader =
-                    BinaryStructConverter.FromByteArray<BITMAPINFOHEADER>(dibBuffer);
-
-                int fileHeaderSize = Marshal.SizeOf(typeof(BITMAPFILEHEADER));
-                int infoHeaderSize = infoHeader.biSize;
-                int fileSize = fileHeaderSize + infoHeader.biSize + infoHeader.biSizeImage;
-
-                BITMAPFILEHEADER fileHeader = new BITMAPFILEHEADER();
-                fileHeader.bfType = BITMAPFILEHEADER.BM;
-                fileHeader.bfSize = fileSize;
-                fileHeader.bfReserved1 = 0;
-                fileHeader.bfReserved2 = 0;
-                fileHeader.bfOffBits = fileHeaderSize + infoHeaderSize + infoHeader.biClrUsed * 4;
-
-                byte[] fileHeaderBytes =
-                    BinaryStructConverter.ToByteArray<BITMAPFILEHEADER>(fileHeader);
-
-                MemoryStream msBitmap = new MemoryStream();
-                msBitmap.Write(fileHeaderBytes, 0, fileHeaderSize);
-                msBitmap.Write(dibBuffer, 0, dibBuffer.Length);
-                msBitmap.Seek(0, SeekOrigin.Begin);
-
-                _bitmapImage = new System.Drawing.Bitmap(msBitmap);
-
-                return BitmapFrame.Create(msBitmap);
+                MessageBox.Show("There is no image detected on the clipboard!");
+                return null;
             }
+
+            // Obtain data formats for the clipboard data..
+            string[] strFormats = objClipboard.GetFormats();
+
+            if (strFormats.Contains("DeviceIndependentBitmap"))
+            {
+                BitmapSource bitmapSource = (BitmapSource)Clipboard.GetDataObject().GetData(DataFormats.Bitmap, true);
+                MemoryStream tempMemoryStream = new MemoryStream();
+                System.Windows.Media.Imaging.BmpBitmapEncoder e = new BmpBitmapEncoder();
+                e.Frames.Add(BitmapFrame.Create(bitmapSource));
+                e.Save(tempMemoryStream);
+                _bitmapImage = new System.Drawing.Bitmap(tempMemoryStream);
+                return bitmapSource;
+            }
+
+            MessageBox.Show("There is no image detected on the clipboard!");
             return null;
         }
 
@@ -151,57 +148,6 @@ namespace ApplicationResizer
             public int biClrImportant;
         }
 
-
-        //private static BitmapSource GetImageSourceFromDropData(DragEventArgs e)
-        //{
-        //    return (BitmapSource)e.Data.GetData(DataFormats.Bitmap, true);
-
-        //    //if (e.Data.GetDataPresent(DataFormats.Bitmap, true))
-        //    //{
-        //    //    var bm = e.Data.GetData(DataFormats.Bitmap, true);
-
-        //    //    var interopBitmap = bm as InteropBitmap;
-        //    //    if (interopBitmap != null)
-        //    //    {
-        //    //        return interopBitmap;
-        //    //    }
-
-        //    //    var bitmap = bm as Bitmap;
-        //    //    if (bitmap != null)
-        //    //    {
-        //    //        return CreateBitmapSource(bitmap);
-        //    //    }
-        //    //}
-        //    //else if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        //    //{
-        //    //    var fileNames = (string[])e.Data.GetData(DataFormats.FileDrop, true);
-        //    //    var bmp = new BitmapImage(new Uri("file:///" + fileNames[0].Replace("\\", "/")));
-        //    //    return bmp;
-        //    //}
-        //    //return null;
-        //}
-
-        //private static Bitmap CreateBitmap(BitmapSource source)
-        //{
-        //    using (var memoryStream = new MemoryStream())
-        //    {
-        //        var bitmapEncoder = new BmpBitmapEncoder();
-        //        bitmapEncoder.Frames.Add(BitmapFrame.Create(source));
-        //        bitmapEncoder.Save(memoryStream);
-        //        memoryStream.Position = 0;
-        //        return new Bitmap(memoryStream);
-        //    }
-        //}
-
-        //private static BitmapSource CreateBitmapSource(Bitmap bitmap)
-        //{
-        //    IntPtr hBitmap = bitmap.GetHbitmap();
-        //    BitmapSource bmpSrc = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero,
-        //      Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-        //    DeleteObject(hBitmap);
-        //    return bmpSrc;
-        //}
-
         private Bitmap _bitmapImage;
 
         private void button3_Click(object sender, RoutedEventArgs e)
@@ -209,45 +155,4 @@ namespace ApplicationResizer
             imgTest.Source = ImageFromClipboardDib();
         }
     }
-
-    public static class BinaryStructConverter
-    {
-        public static T FromByteArray<T>(byte[] bytes) where T : struct
-        {
-            IntPtr ptr = IntPtr.Zero;
-            try
-            {
-                int size = Marshal.SizeOf(typeof(T));
-                ptr = Marshal.AllocHGlobal(size);
-                Marshal.Copy(bytes, 0, ptr, size);
-                object obj = Marshal.PtrToStructure(ptr, typeof(T));
-                return (T)obj;
-            }
-            finally
-            {
-                if (ptr != IntPtr.Zero)
-                    Marshal.FreeHGlobal(ptr);
-            }
-        }
-
-        public static byte[] ToByteArray<T>(T obj) where T : struct
-        {
-            IntPtr ptr = IntPtr.Zero;
-            try
-            {
-                int size = Marshal.SizeOf(typeof(T));
-                ptr = Marshal.AllocHGlobal(size);
-                Marshal.StructureToPtr(obj, ptr, true);
-                byte[] bytes = new byte[size];
-                Marshal.Copy(ptr, bytes, 0, size);
-                return bytes;
-            }
-            finally
-            {
-                if (ptr != IntPtr.Zero)
-                    Marshal.FreeHGlobal(ptr);
-            }
-        }
-    }
-
 }
