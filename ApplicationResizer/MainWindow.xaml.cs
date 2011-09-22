@@ -18,6 +18,9 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing.Imaging;
+using log4net;
+using log4net.Config;
+
 
 namespace ApplicationResizer
 {
@@ -30,20 +33,26 @@ namespace ApplicationResizer
 
         public string StoragePath { get; set; }
 
+        protected static readonly ILog log = LogManager.GetLogger(typeof(App));
+
         public MainWindow()
         {
+            log4net.Config.XmlConfigurator.Configure();            
+            log.Info("Initializing app");
+            // throw new Exception("bla");
             InitializeComponent();
             InitializeLabel();
             targetQualitySlider.Value = Convert.ToDouble(Config.AppSettings.Settings["TargetQuality"].Value);
+            log.Info("Initialization successfull");
         }
 
         private void InitializeLabel()
         {
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            log.Info("Loaded Exe Configuration");
             StoragePath = Config.AppSettings.Settings["DefaultStoragePath"].Value;
             StoragePathTextbox.Text = "Configured to save in: " + StoragePath;
-
-            
+            log.Info("Loaded DefaultStoragePath: " + StoragePath);
         }
 
         private int GetWidth()
@@ -66,9 +75,10 @@ namespace ApplicationResizer
                 width = 400;
             }
 
+            log.Info("Determined width as: " + width);
             return width;
         }
-        
+
         private void PickNameButton_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.SaveFileDialog();
@@ -76,19 +86,25 @@ namespace ApplicationResizer
 
             dlg.InitialDirectory = StoragePath;
             dlg.Filter = "JPeg Image|*.jpg";
+            log.Info("Showing dialog...");
             if (dlg.ShowDialog() == true)
             {
-                var fi = new System.IO.FileInfo(dlg.FileName);
+                var fi = new FileInfo(dlg.FileName);
                 StoragePath = fi.DirectoryName;
+                log.Info("Selected folder: " + StoragePath);
                 string name = System.IO.Path.GetFileNameWithoutExtension(fi.FullName);
+                log.Info("Original name: " + name);
                 string transformed = name.Replace(" ", "-") + "-web.jpg";
                 Config.AppSettings.Settings["DefaultStoragePath"].Value = StoragePath;
-                ConfigurationManager.RefreshSection("appSettings");                
+                ConfigurationManager.RefreshSection("appSettings");
                 long quality = Convert.ToInt64(targetQualitySlider.Value);
                 Config.AppSettings.Settings["TargetQuality"].Value = quality.ToString();
                 Config.Save(ConfigurationSaveMode.Modified);
+                log.Info("Saved configuration, attempting to resize now...");
                 ResizeImage ri = new ResizeImage(_bitmapImage, quality);
-                ri.ProcessByWidth(GetWidth(), transformed);
+                string path = String.Format("{0}\\{1}", StoragePath, transformed);
+                ri.ProcessByWidth(GetWidth(), path);
+                log.Info("Resized correctly to " + path + ", with quality " + quality.ToString());
             }
         }
 
@@ -108,11 +124,13 @@ namespace ApplicationResizer
             if (strFormats.Contains("DeviceIndependentBitmap"))
             {
                 BitmapSource bitmapSource = (BitmapSource)Clipboard.GetDataObject().GetData(DataFormats.Bitmap, true);
-                MemoryStream tempMemoryStream = new MemoryStream();
-                System.Windows.Media.Imaging.BmpBitmapEncoder e = new BmpBitmapEncoder();
-                e.Frames.Add(BitmapFrame.Create(bitmapSource));
-                e.Save(tempMemoryStream);
-                _bitmapImage = new System.Drawing.Bitmap(tempMemoryStream);
+                using (MemoryStream tempMemoryStream = new MemoryStream())
+                {
+                    BmpBitmapEncoder e = new BmpBitmapEncoder();
+                    e.Frames.Add(BitmapFrame.Create(bitmapSource));
+                    e.Save(tempMemoryStream);
+                    _bitmapImage = new System.Drawing.Bitmap(tempMemoryStream);
+                }
                 return bitmapSource;
             }
 
@@ -153,6 +171,29 @@ namespace ApplicationResizer
         private void button3_Click(object sender, RoutedEventArgs e)
         {
             imgTest.Source = ImageFromClipboardDib();
+        }
+
+        private void width100RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            targetQualitySlider.Value = 100;
+        }
+
+        private void width110RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            targetQualitySlider.Value = 100;
+        }
+
+        private void width400RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            targetQualitySlider.Value = 80;
+        }
+
+        private void width300RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (targetQualitySlider != null)
+            {
+                targetQualitySlider.Value = 80;
+            }
         }
     }
 }

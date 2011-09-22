@@ -5,10 +5,10 @@
     <Grid Height="266" Width="492">
         <TextBox Text="Location" Height="65" HorizontalAlignment="Left" Margin="9,189,0,0" Name="StoragePathTextbox" VerticalAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" IsReadOnlyCaretVisible="True" Width="471" />
         <Button Content="Save as..." Height="138" HorizontalAlignment="Left" Margin="359,0,0,121" Name="PickNameButton" VerticalAlignment="Bottom" Width="122" Click="PickNameButton_Click" />
-        <RadioButton Content="100" Height="30" HorizontalAlignment="Left" Margin="12,156,0,0" Name="width100RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
-        <RadioButton Content="110" Height="30" HorizontalAlignment="Left" Margin="60,156,0,0" Name="width110RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
-        <RadioButton Content="300" Height="30" HorizontalAlignment="Left" Margin="109,156,0,0" Name="width300RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" IsChecked="True"/>
-        <RadioButton Content="400" Height="30" HorizontalAlignment="Left" Margin="159,156,0,0" Name="width400RadioButton" VerticalAlignment="Top" GroupName="WidthGroup"/>
+        <RadioButton Content="100" Height="30" HorizontalAlignment="Left" Margin="12,156,0,0" Name="width100RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" Checked="width100RadioButton_Checked" />
+        <RadioButton Content="110" Height="30" HorizontalAlignment="Left" Margin="60,156,0,0" Name="width110RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" Checked="width110RadioButton_Checked"/>
+        <RadioButton Content="300" Height="30" HorizontalAlignment="Left" Margin="109,156,0,0" Name="width300RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" IsChecked="True" Checked="width300RadioButton_Checked"/>
+        <RadioButton Content="400" Height="30" HorizontalAlignment="Left" Margin="159,156,0,0" Name="width400RadioButton" VerticalAlignment="Top" GroupName="WidthGroup" Checked="width400RadioButton_Checked"/>
         <Image Height="150" HorizontalAlignment="Left" Name="imgTest" Stretch="Fill" VerticalAlignment="Top" Width="200" Margin="0,1,0,0" />
         <Button Content="Import clipboard" Height="138" HorizontalAlignment="Left" Margin="206,6,0,0" Name="button3" VerticalAlignment="Top" Width="147" Click="button3_Click" FontStretch="Condensed" />
         <Slider Height="23" HorizontalAlignment="Left" Margin="206,156,0,0" Name="targetQualitySlider" VerticalAlignment="Top" Width="274" Value="60" Interval="10" Maximum="100" ToolTip="JPG Quality (100 is best but larger)" TickPlacement="Both" TickFrequency="10" SmallChange="5" LargeChange="10" />
