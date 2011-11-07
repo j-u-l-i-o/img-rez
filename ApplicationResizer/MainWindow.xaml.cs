@@ -43,9 +43,32 @@ namespace ApplicationResizer
             InitializeComponent();
             InitializeLabel();
             targetQualitySlider.Value = Convert.ToDouble(Config.AppSettings.Settings["TargetQuality"].Value);
+            string selectedWidthAsString = Config.AppSettings.Settings["DefaultSelectedWidth"].Value;
+            ConfigureDefaultCheckbox(selectedWidthAsString);
             log.Info("Initialization successfull");
         }
 
+        private void ConfigureDefaultCheckbox(string selectedWidthAsString)
+        {
+            switch (selectedWidthAsString)
+            {
+                case "110":
+                    width110RadioButton.IsChecked = true;
+                    break;
+                case "300":
+                    width300RadioButton.IsChecked = true;
+                    break;
+                case "400":
+                    width400RadioButton.IsChecked = true;
+                    break;
+                case "520":
+                    width520RadioButton.IsChecked = true;
+                    break;
+                default:
+                    width100RadioButton.IsChecked = true;
+                    break;
+            }
+        }
         private void InitializeLabel()
         {
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -73,6 +96,10 @@ namespace ApplicationResizer
             else if (width400RadioButton.IsChecked.HasValue && width400RadioButton.IsChecked.Value == true)
             {
                 width = 400;
+            }
+            else if (width520RadioButton.IsChecked.HasValue && width520RadioButton.IsChecked.Value == true)
+            {
+                width = 520;
             }
 
             log.Info("Determined width as: " + width);
@@ -175,24 +202,33 @@ namespace ApplicationResizer
 
         private void width100RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            targetQualitySlider.Value = 100;
+            SetupQualitySlider(100);
         }
 
         private void width110RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            targetQualitySlider.Value = 100;
+            SetupQualitySlider(100);
         }
 
         private void width400RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            targetQualitySlider.Value = 80;
+            SetupQualitySlider(100);
+        }
+
+        private void width520RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            SetupQualitySlider(100);
         }
 
         private void width300RadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            SetupQualitySlider(100);
+        }
+        private void SetupQualitySlider(int quality)
+        {
             if (targetQualitySlider != null)
             {
-                targetQualitySlider.Value = 80;
+                targetQualitySlider.Value = quality;
             }
         }
     }
